@@ -62,7 +62,8 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 interface Conversation {
   id: string;
   active?: boolean;
-  contact?: { number?: string };
+  // The API returns phoneNumber; number is kept as a defensive alias.
+  contact?: { phoneNumber?: string; number?: string };
 }
 
 /**
@@ -77,12 +78,18 @@ export async function conversationFor(toNumber: string): Promise<string> {
   const digits = toNumber.replace(/\D/g, '');
   const list = await api<{ results?: Conversation[] } | Conversation[]>('/conversations/');
   const all = Array.isArray(list) ? list : (list.results ?? []);
-  const found = all.find((c) => (c.contact?.number ?? '').replace(/\D/g, '').endsWith(digits));
+  const found = all.find((c) =>
+    (c.contact?.phoneNumber ?? c.contact?.number ?? '').replace(/\D/g, '').endsWith(digits),
+  );
   if (found) return (cached = found.id);
 
   const created = await api<Conversation>('/conversations/', {
     method: 'POST',
-    body: JSON.stringify({ toNumber: digits, fromNumber: FROM, agentId: AGENT_ID }),
+    // The API rejects both together: "Only one of fromNumber or agentId can
+    // be provided." The agent already owns the sending number.
+    body: JSON.stringify(
+      AGENT_ID ? { toNumber: digits, agentId: AGENT_ID } : { toNumber: digits, fromNumber: FROM },
+    ),
   });
   return (cached = created.id);
 }

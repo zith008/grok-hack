@@ -3,8 +3,10 @@
 // blocker once this is set, so the existing detect/diagnose/fix/verify loop
 // (detector 1) picks it up without any separate detection code.
 //
-// No TAVILY_API_KEY -> returns null and the price blocker just never fires.
-// That's the same "unset env var = feature quietly off" pattern as Grok/Wassist.
+// No TAVILY_API_KEY -> falls back to the cached comps in comps.ts, so the
+// price path still works without a search key.
+
+import { cachedMarketMedianPrice } from "./comps";
 
 interface TavilyResult {
   title?: string;
@@ -25,7 +27,7 @@ function median(nums: number[]): number | null {
 
 export async function fetchMarketMedianPrice(productTitle: string): Promise<number | null> {
   const apiKey = process.env.TAVILY_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) return cachedMarketMedianPrice(productTitle);
 
   try {
     const res = await fetch("https://api.tavily.com/search", {
@@ -39,13 +41,13 @@ export async function fetchMarketMedianPrice(productTitle: string): Promise<numb
       }),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) return cachedMarketMedianPrice(productTitle);
 
     const data = (await res.json()) as { results?: TavilyResult[] };
     const prices = (data.results ?? []).flatMap((r) => extractPrices(`${r.title ?? ""} ${r.content ?? ""}`));
 
-    return median(prices);
+    return median(prices) ?? cachedMarketMedianPrice(productTitle);
   } catch {
-    return null;
+    return cachedMarketMedianPrice(productTitle);
   }
 }

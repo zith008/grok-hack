@@ -14,6 +14,7 @@ import { getAutonomySettings } from "./settings";
 import { getProduct, updateProduct, updateVariantPrice } from "./shopify";
 import { getSupabaseServerClient } from "./supabase";
 import { syncAllProducts } from "./sync";
+import { fetchMarketMedianPrice } from "./tavily";
 
 /**
  * `body_html` is kept only so a rollback can restore the exact original —
@@ -112,7 +113,10 @@ export async function verifyIncident(
     throw new Error(`Could not reload product for verify: ${error?.message}`);
   }
 
-  const snapshot = toSnapshot(row as ProductRow);
+  // Verify has to see the same market comps the first run did, or a price fix
+  // gets re-judged with no reference point and always looks fine.
+  const market_median_price = await fetchMarketMedianPrice(row.title as string);
+  const snapshot = toSnapshot(row as ProductRow, { market_median_price });
   const decisions = await Promise.all(PERSONAS.map((p) => runShopper(p, snapshot)));
   await recordDecisions(productId, decisions);
 

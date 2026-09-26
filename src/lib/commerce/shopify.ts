@@ -38,6 +38,17 @@ export async function listProducts(): Promise<ShopifyProduct[]> {
   return products;
 }
 
+export async function getProduct(productId: number): Promise<ShopifyProduct> {
+  const res = await fetch(`${shopifyBaseUrl()}/products/${productId}.json`, {
+    headers: shopifyHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error(`Shopify getProduct failed: ${res.status} ${await res.text()}`);
+  }
+  const { product } = (await res.json()) as { product: ShopifyProduct };
+  return product;
+}
+
 export async function updateProduct(
   productId: number,
   fields: { title?: string; body_html?: string },

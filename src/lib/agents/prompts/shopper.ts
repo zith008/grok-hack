@@ -11,6 +11,8 @@ Decide one of:
 
 Judge ONLY what is on the page. If information is absent, it is absent — never assume a shop has a size chart or a returns policy just because most shops do.
 
+You have already looked at any photos listed below; do not ask to see the product unless there are no photos at all.
+
 List every blocker you actually hit, using these ids and nothing else:
 ${BLOCKERS.map((b) => `- ${b.id}: ${b.test}`).join('\n')}
 
@@ -29,7 +31,11 @@ You will not pay more than about ${Math.round(persona.price_tolerance * 100)}% o
 --- PRODUCT PAGE ---
 Title: ${p.title}
 Price: ${p.currency}${p.price.toFixed(2)}
-Images: ${p.image_urls.length > 0 ? `${p.image_urls.length} image(s)` : 'NONE'}
+Images: ${
+    p.image_urls.length > 0
+      ? `${p.image_urls.length} clear photo(s) of the product, which you have looked at`
+      : 'NONE — there is no photo of this product'
+  }
 Size information: ${p.size_info || 'NOT SHOWN ON THE PAGE'}
 Materials: ${p.materials || 'NOT SHOWN ON THE PAGE'}
 Returns: ${p.returns_policy || 'NOT SHOWN ON THE PAGE'}

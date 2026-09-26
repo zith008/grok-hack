@@ -13,6 +13,7 @@ import { getSupabaseServerClient } from "@/lib/commerce/supabase";
 import { fetchMarketMedianPrice } from "@/lib/commerce/tavily";
 import { PERSONAS } from "@/lib/agents/personas";
 import { runShopper } from "@/lib/agents/shopper";
+import { LAST_MODEL_USED, limitedMap } from "@/lib/agents/grok";
 import { toSnapshot, type ProductRow } from "@/lib/agents/snapshot";
 
 async function loadProducts(shopifyId?: string): Promise<ProductRow[]> {
@@ -31,13 +32,15 @@ async function loadProducts(shopifyId?: string): Promise<ProductRow[]> {
 async function runOnProduct(row: ProductRow) {
   const marketMedianPrice = await fetchMarketMedianPrice(row.title);
   const snapshot = toSnapshot(row, { market_median_price: marketMedianPrice });
-  const decisions = await Promise.all(PERSONAS.map((p) => runShopper(p, snapshot)));
+  // Free model pools reject 20-at-once; pace the run instead.
+  const concurrency = Number(process.env.SHOPPER_CONCURRENCY ?? 4);
+  const decisions = await limitedMap(PERSONAS, concurrency, (p) => runShopper(p, snapshot));
 
   await recordDecisions(row.id, decisions);
 
   const carts = decisions.filter((d) => d.action === "add_to_cart").length;
   console.log(
-    `${row.title}: ${carts}/${PERSONAS.length} added to cart (${((carts / PERSONAS.length) * 100).toFixed(0)}%)`,
+    `${row.title}: ${carts}/${PERSONAS.length} added to cart (${((carts / PERSONAS.length) * 100).toFixed(0)}%) [${LAST_MODEL_USED ?? "mock"}]`,
   );
 
   const result = await detectAndDiagnose(

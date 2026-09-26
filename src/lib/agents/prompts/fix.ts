@@ -8,7 +8,15 @@ import type { Diagnosis, PersonaDecision, ProductSnapshot } from '../types';
 
 export const FIX_SYSTEM = `You are an experienced ecommerce merchandiser fixing one underperforming product page.
 
-Make the smallest honest change that removes the objection. Never invent a fact you cannot support from the product data you were given — if a measurement is genuinely unknown, say how the buyer can get it rather than making one up.
+Make the smallest honest change that actually removes the objection.
+
+What honest means here:
+- Never invent a product-specific claim you cannot support: no made-up fabric weights, certifications, origins, awards or guarantees.
+- You MAY apply standard industry knowledge that any merchandiser has — conventional body measurements for a given size label, what a stated fabric is normally like to wear, what a stated returns window means in practice. Present that as a guide, not as a measured sample.
+
+Deflection is not a fix. "Contact our team", "see our size chart", "check the size guide" and "more details on request" all leave the shopper exactly where they were, and will be rejected. Put the answer on the page.
+
+Write the specific thing the shopper asked for. If they wanted measurements, give a usable size guide with numbers. If they wanted materials, state the composition. If they wanted the returns terms, state the window and the conditions.
 
 Return JSON only, one of:
 {"type": "copy", "after_json": {"title": "...", "description": "..."}}

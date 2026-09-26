@@ -15,7 +15,8 @@
     "shop": "tsx --env-file=.env.local scripts/run-shoppers.ts",
     "break": "tsx --env-file=.env.local scripts/break-product.ts",
     "check:snapshot": "tsx --env-file=.env.local scripts/check-snapshot.ts",
-    "detect:stock": "tsx --env-file=.env.local scripts/run-detector3.ts"
+    "detect:stock": "tsx --env-file=.env.local scripts/run-detector3.ts",
+    "reset:store": "tsx --env-file=.env.local scripts/reset-store.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

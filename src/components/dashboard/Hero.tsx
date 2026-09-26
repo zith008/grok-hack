@@ -1,19 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
-export function Hero({
-  amount,
-  onRunLoop,
-  running,
-  lastRunNote,
-}: {
-  amount: number;
-  onRunLoop: () => void;
-  running: boolean;
-  lastRunNote: string | null;
-}) {
+export function Hero({ amount }: { amount: number }) {
   const [shown, setShown] = useState(amount);
+  const [running, setRunning] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
     const start = shown;
@@ -32,6 +25,30 @@ export function Hero({
   }, [amount]);
 
   const clear = amount <= 0;
+
+  const runLoop = async () => {
+    setRunning(true);
+    setNote(null);
+    try {
+      const res = await fetch('/api/run-loop', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.ok) {
+        setNote(`Run failed: ${body?.error ?? res.status}`);
+        return;
+      }
+      const opened = (body.summaries ?? []).filter((s: { incidentOpened: boolean }) => s.incidentOpened).length;
+      const n = (body.summaries ?? []).length;
+      setNote(
+        opened > 0
+          ? `Ran ${n} products — ${opened} incident${opened === 1 ? '' : 's'} opened.`
+          : `Ran ${n} products — store stayed healthy.`,
+      );
+    } catch {
+      setNote('Run failed: could not reach the server.');
+    } finally {
+      setRunning(false);
+    }
+  };
 
   return (
     <div className="flex h-full flex-col justify-between rounded-3xl border border-border bg-card p-7">
@@ -53,7 +70,7 @@ export function Hero({
       <div className="mt-6">
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={onRunLoop}
+            onClick={runLoop}
             disabled={running}
             className="flex items-center gap-2 rounded-xl bg-dark px-5 py-3 text-sm font-semibold text-dark-ink transition hover:brightness-125 disabled:opacity-50"
           >
@@ -69,14 +86,14 @@ export function Hero({
             )}
             {running ? 'Running shoppers…' : 'Run shoppers now'}
           </button>
-          <a
-            href="#incidents"
+          <Link
+            href="/dashboard/incidents"
             className="rounded-xl border border-border-strong px-5 py-3 text-sm font-semibold text-ink-dim transition hover:bg-card-muted"
           >
             View incidents
-          </a>
+          </Link>
         </div>
-        {lastRunNote && <p className="mt-3 text-xs text-ink-faint">{lastRunNote}</p>}
+        {note && <p className="mt-3 text-xs text-ink-faint">{note}</p>}
       </div>
     </div>
   );

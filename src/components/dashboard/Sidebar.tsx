@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { LogoMark } from '../Logo';
 
 function RailIcon({
@@ -38,15 +39,29 @@ function RailIcon({
   );
 }
 
-export function Sidebar({
-  onRunLoop,
-  running,
-  shopifyAdminUrl,
-}: {
-  onRunLoop: () => void;
-  running: boolean;
-  shopifyAdminUrl?: string;
-}) {
+export function Sidebar({ shopifyAdminUrl }: { shopifyAdminUrl?: string }) {
+  const [running, setRunning] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  const runLoop = async () => {
+    setRunning(true);
+    setNote(null);
+    try {
+      const res = await fetch('/api/run-loop', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.ok) {
+        setNote(`Run failed: ${body?.error ?? res.status}`);
+        return;
+      }
+      const opened = (body.summaries ?? []).filter((s: { incidentOpened: boolean }) => s.incidentOpened).length;
+      setNote(opened > 0 ? `${opened} incident${opened === 1 ? '' : 's'} opened` : 'Store stayed healthy');
+    } catch {
+      setNote('Run failed: could not reach the server.');
+    } finally {
+      setRunning(false);
+    }
+  };
+
   return (
     <nav className="flex w-16 shrink-0 flex-col items-center gap-1 rounded-2xl border border-border bg-shell-bg py-4">
       <div className="mb-3 flex h-10 w-10 items-center justify-center">
@@ -54,7 +69,7 @@ export function Sidebar({
       </div>
       <div className="mb-1 h-px w-6 bg-border-strong" />
 
-      <RailIcon label={running ? 'Running…' : 'Run shoppers now'} onClick={onRunLoop}>
+      <RailIcon label={running ? 'Running…' : note ?? 'Run shoppers now'} onClick={runLoop}>
         {running ? (
           <svg className="h-[18px] w-[18px] animate-spin" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />

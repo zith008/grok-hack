@@ -50,9 +50,11 @@ async function breakPrice(productId: number) {
   if (!variant) throw new Error("Product has no variant to reprice.");
 
   const before = Number(variant.price);
-  const after = Number((before * 1.25).toFixed(2));
+  // +40%, not +25%: the shelf price already sits 10% under the market median,
+  // so a smaller bump lands level with comparables and reads as merely average.
+  const after = Number((before * 1.4).toFixed(2));
   await updateVariantPrice(variant.id, String(after));
-  console.log(`Broke "${product.title}": price £${before} -> £${after} (+25%)`);
+  console.log(`Broke "${product.title}": price £${before} -> £${after} (+40%)`);
 }
 
 async function main() {

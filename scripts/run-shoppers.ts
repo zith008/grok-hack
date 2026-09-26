@@ -10,6 +10,7 @@ import { detectAndDiagnose } from "@/lib/commerce/detector";
 import { recordDecisions } from "@/lib/commerce/events";
 import { proposeAndApply } from "@/lib/commerce/fix-lifecycle";
 import { getSupabaseServerClient } from "@/lib/commerce/supabase";
+import { fetchMarketMedianPrice } from "@/lib/commerce/tavily";
 import { PERSONAS } from "@/lib/agents/personas";
 import { runShopper } from "@/lib/agents/shopper";
 import { toSnapshot, type ProductRow } from "@/lib/agents/snapshot";
@@ -28,7 +29,8 @@ async function loadProducts(shopifyId?: string): Promise<ProductRow[]> {
 }
 
 async function runOnProduct(row: ProductRow) {
-  const snapshot = toSnapshot(row);
+  const marketMedianPrice = await fetchMarketMedianPrice(row.title);
+  const snapshot = toSnapshot(row, { market_median_price: marketMedianPrice });
   const decisions = await Promise.all(PERSONAS.map((p) => runShopper(p, snapshot)));
 
   await recordDecisions(row.id, decisions);

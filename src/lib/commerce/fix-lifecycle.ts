@@ -177,6 +177,10 @@ export async function proposeAndApply(
   }
 
   if (autonomy !== "automatic") {
+    // Status moves to "fixing" as soon as a fix is pending — that's what the
+    // dashboard's Approve/Reject buttons key off (see IncidentCard.tsx).
+    await supabase.from("incidents").update({ status: "fixing" }).eq("id", incidentId);
+
     const to = process.env.MERCHANT_WHATSAPP_NUMBER;
     const notifyDelivered = to
       ? (await notify(to, alertText(snapshot, diagnosis, fix, lossPerDayGbp))).delivered

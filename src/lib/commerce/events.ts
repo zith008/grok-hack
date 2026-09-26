@@ -1,7 +1,41 @@
 import type { PersonaDecision } from "../agents/types";
 import { getSupabaseServerClient } from "./supabase";
 
-/** Writes one persona run's decisions to `events`. */
+/**
+ * Best-effort dual-write to PostHog (architecture doc: "Send each shopper
+ * event to both Supabase and PostHog... detection reads from Supabase for
+ * real-time"). No-ops when NEXT_PUBLIC_POSTHOG_KEY is unset. Never throws —
+ * PostHog being down must never break detection.
+ */
+async function capturePostHog(productId: string, decisions: PersonaDecision[]): Promise<void> {
+  const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  if (!apiKey) return;
+  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com";
+
+  try {
+    await fetch(`${host}/batch/`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey,
+        batch: decisions.map((d) => ({
+          event: "shopper_decision",
+          distinct_id: d.persona,
+          properties: {
+            product_id: productId,
+            action: d.action,
+            reason: d.reason,
+            blockers: d.blockers,
+          },
+        })),
+      }),
+    });
+  } catch {
+    // ignore — Supabase is the source of truth for detection
+  }
+}
+
+/** Writes one persona run's decisions to `events` (and PostHog, best-effort). */
 export async function recordDecisions(
   productId: string,
   decisions: PersonaDecision[],
@@ -18,6 +52,8 @@ export async function recordDecisions(
   if (error) {
     throw new Error(`Supabase events insert failed: ${error.message}`);
   }
+
+  await capturePostHog(productId, decisions);
 }
 
 export function conversionRate(decisions: { action: string }[]): number {

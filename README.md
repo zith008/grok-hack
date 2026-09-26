@@ -2,7 +2,7 @@
 
 **Sentry for revenue.** A store loses money the moment a product page breaks, and nobody notices for weeks. Autopilot notices in about sixty seconds, fixes it on the live store, proves the fix worked — and rolls itself back when it didn't.
 
-Built at the Grok Bot Commerce Hackathon, London, 26 September 2026.
+Built at the Grok Bot Commerce Hackathon, London, 26 September 2026
 
 ```
 detect  →  diagnose  →  fix  →  verify  →  roll back

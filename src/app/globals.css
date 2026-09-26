@@ -1,51 +1,60 @@
 @import "tailwindcss";
 
 :root {
-  /* Autopilot console — deliberately dark, built to read from across a room. */
-  --bg: #0a0b0d;
-  --surface: #121417;
-  --surface-2: #1a1d21;
-  --surface-3: #22262b;
-  --border: rgba(245, 246, 248, 0.08);
-  --border-strong: rgba(245, 246, 248, 0.16);
-  --ink: #f5f6f8;
-  --ink-dim: rgba(245, 246, 248, 0.58);
-  --ink-faint: rgba(245, 246, 248, 0.34);
+  /* Warm light console — page sits on a soft neutral, the shell and cards
+     step up in lightness so hierarchy comes from tone, not just borders. */
+  --page-bg: #e9e6e1;
+  --shell-bg: #f5f3ef;
+  --card: #ffffff;
+  --card-muted: #f2f0ec;
+  --border: rgba(22, 19, 15, 0.09);
+  --border-strong: rgba(22, 19, 15, 0.17);
+  --ink: #17130f;
+  --ink-dim: rgba(23, 19, 15, 0.62);
+  --ink-faint: rgba(23, 19, 15, 0.4);
 
-  /* Brand accent — a cool indigo, distinct from the semantic status colors below. */
-  --accent: #7b8cff;
-  --accent-ink: #eef0ff;
-  --accent-dim: rgba(123, 140, 255, 0.14);
-  --accent-ring: rgba(123, 140, 255, 0.35);
+  /* Brand accent — warm signal orange. */
+  --accent: #ff5a1f;
+  --accent-strong: #e2470f;
+  --accent-ink: #fff6f2;
+  --accent-soft: #ffe3d2;
+  --accent-ring: rgba(255, 90, 31, 0.35);
 
-  /* Semantic status — separate hue family from the accent on purpose. */
-  --ok: #34d399;
-  --ok-bg: rgba(52, 211, 153, 0.13);
-  --ok-ring: rgba(52, 211, 153, 0.32);
-  --warn: #f5b955;
-  --warn-bg: rgba(245, 185, 85, 0.13);
-  --warn-ring: rgba(245, 185, 85, 0.32);
-  --critical: #fb7185;
-  --critical-bg: rgba(251, 113, 133, 0.13);
-  --critical-ring: rgba(251, 113, 133, 0.32);
-  --neutral-status: #93a0b8;
-  --neutral-status-bg: rgba(147, 160, 184, 0.13);
-  --neutral-status-ring: rgba(147, 160, 184, 0.3);
+  /* Semantic status. */
+  --ok: #14875c;
+  --ok-bg: #dff3e9;
+  --ok-ring: rgba(20, 135, 92, 0.28);
+  --warn: #a06a07;
+  --warn-bg: #faedd0;
+  --warn-ring: rgba(160, 106, 7, 0.28);
+  --critical: #c33f2c;
+  --critical-bg: #fbe3df;
+  --critical-ring: rgba(195, 63, 44, 0.28);
+  --neutral-status: #6b6459;
+  --neutral-status-bg: #ece9e3;
+  --neutral-status-ring: rgba(107, 100, 89, 0.25);
+
+  /* A true-dark tile for the one or two elements that should read as ink,
+     not card — same trick the reference uses for its card widget. */
+  --dark: #17130f;
+  --dark-ink: #f5f1ea;
+  --dark-2: #241f19;
 }
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-surface-3: var(--surface-3);
+  --color-page-bg: var(--page-bg);
+  --color-shell-bg: var(--shell-bg);
+  --color-card: var(--card);
+  --color-card-muted: var(--card-muted);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-ink: var(--ink);
   --color-ink-dim: var(--ink-dim);
   --color-ink-faint: var(--ink-faint);
   --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
   --color-accent-ink: var(--accent-ink);
-  --color-accent-dim: var(--accent-dim);
+  --color-accent-soft: var(--accent-soft);
   --color-accent-ring: var(--accent-ring);
   --color-ok: var(--ok);
   --color-ok-bg: var(--ok-bg);
@@ -59,9 +68,16 @@
   --color-neutral-status: var(--neutral-status);
   --color-neutral-status-bg: var(--neutral-status-bg);
   --color-neutral-status-ring: var(--neutral-status-ring);
+  --color-dark: var(--dark);
+  --color-dark-ink: var(--dark-ink);
+  --color-dark-2: var(--dark-2);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Back-compat aliases so components from the dark console redesign keep working. */
+  --color-surface: var(--card);
+  --color-surface-2: var(--card-muted);
+  --color-surface-3: var(--card-muted);
+
+  --font-sans: var(--font-jakarta);
 }
 
 * {
@@ -69,18 +85,18 @@
 }
 
 body {
-  background: var(--bg);
+  background: var(--page-bg);
   color: var(--ink);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: var(--accent-dim);
+  background: var(--accent-soft);
   color: var(--ink);
 }
 
-/* Thin, unobtrusive scrollbars for the feed panels. */
 .thin-scroll::-webkit-scrollbar {
   width: 6px;
 }

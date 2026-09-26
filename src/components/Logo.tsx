@@ -7,17 +7,16 @@
 export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden="true">
-      <rect width="32" height="32" rx="9" fill="var(--accent-dim)" />
-      <rect x="0.5" y="0.5" width="31" height="31" rx="8.5" stroke="var(--accent-ring)" />
+      <rect width="32" height="32" rx="9" fill="var(--accent)" />
       <path
         d="M6 17.5H10.5L13 23L18 8.5L20.5 14.5H26"
-        stroke="var(--accent)"
-        strokeWidth="2.1"
+        stroke="var(--accent-ink)"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="26" cy="14.5" r="2.1" fill="var(--bg)" />
-      <circle cx="26" cy="14.5" r="1.5" fill="var(--accent)" />
+      <circle cx="26" cy="14.5" r="2.1" fill="var(--accent)" />
+      <circle cx="26" cy="14.5" r="1.4" fill="var(--accent-ink)" />
     </svg>
   );
 }
@@ -26,7 +25,7 @@ export function Logo({ className = "" }: { className?: string }) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
       <LogoMark />
-      <span className="font-mono text-[17px] font-semibold tracking-tight text-ink">
+      <span className="text-[17px] font-bold tracking-tight text-ink">
         Autopilot
       </span>
     </div>

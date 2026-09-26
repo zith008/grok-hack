@@ -1,0 +1,10 @@
+import { createClient } from '@supabase/supabase-js';
+const s = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const { data: i } = await s.from('incidents').select('*').eq('id','48d10ab1-8f45-4389-af6b-4e57169fc4a4').single();
+console.log('blocker=', i.blocker, '| status=', i.status, '| after=', i.conversion_after);
+console.log('dx=', i.diagnosis);
+const { data: f } = await s.from('fixes').select('*').eq('incident_id', i.id);
+for (const x of f) console.log('FIX', x.type, x.autonomy, JSON.stringify(x.after_json).slice(0,250));
+const { data: ev } = await s.from('events').select('persona,type,reason').eq('product_id', i.product_id).order('created_at',{ascending:false}).limit(20);
+const leaves = ev.filter(e=>e.type!=='add_to_cart').slice(0,6);
+for (const e of leaves) console.log('LEFT |', e.persona, '|', e.reason);

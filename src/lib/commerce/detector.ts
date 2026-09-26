@@ -2,7 +2,7 @@
 // personas out of 20, one missing attribute drops conversion to roughly 65%
 // of store average, so "under 30%" never fires. Use 70%.
 import { diagnose } from "../agents/diagnose";
-import type { PersonaDecision, ProductSnapshot } from "../agents/types";
+import type { Diagnosis, PersonaDecision, ProductSnapshot } from "../agents/types";
 import { conversionRate, recentConversionRate, recordDecisions, storeAverageConversion } from "./events";
 import { getSupabaseServerClient } from "./supabase";
 
@@ -24,6 +24,7 @@ export interface DetectorResult {
   rate: number;
   storeAvg: number;
   lossPerDayGbp?: number;
+  diagnosis?: Diagnosis;
 }
 
 /** (expected carts − actual) × avg order value × checkout rate, scaled to the sample. */
@@ -97,7 +98,7 @@ export async function detectAndDiagnose(
     .update({ diagnosis: diagnosis.cause, blocker: diagnosis.blocker })
     .eq("id", incident.id);
 
-  return { opened: true, incidentId: incident.id, rate, storeAvg, lossPerDayGbp };
+  return { opened: true, incidentId: incident.id, rate, storeAvg, lossPerDayGbp, diagnosis };
 }
 
 /** Convenience: recompute a product's own latest rate without a fresh run. */

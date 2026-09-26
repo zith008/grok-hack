@@ -8,6 +8,7 @@
  */
 import { detectAndDiagnose } from "@/lib/commerce/detector";
 import { recordDecisions } from "@/lib/commerce/events";
+import { proposeAndApply } from "@/lib/commerce/fix-lifecycle";
 import { getSupabaseServerClient } from "@/lib/commerce/supabase";
 import { PERSONAS } from "@/lib/agents/personas";
 import { runShopper } from "@/lib/agents/shopper";
@@ -43,10 +44,33 @@ async function runOnProduct(row: ProductRow) {
     decisions,
   );
 
-  if (result.opened) {
+  if (result.opened && result.incidentId && result.diagnosis) {
     console.log(
       `  -> incident opened (${result.incidentId}): £${result.lossPerDayGbp}/day, rate ${(result.rate * 100).toFixed(0)}% vs store avg ${(result.storeAvg * 100).toFixed(0)}%`,
     );
+
+    const outcome = await proposeAndApply(
+      result.incidentId,
+      {
+        id: row.id,
+        shopify_id: row.shopify_id,
+        title: row.title,
+        price: Number(row.price),
+        cost: row.cost != null ? Number(row.cost) : null,
+      },
+      snapshot,
+      result.diagnosis,
+      decisions,
+      result.lossPerDayGbp ?? 0,
+    );
+
+    if (outcome.needsApproval) {
+      console.log(
+        `  -> fix proposed (${outcome.type}), waiting on approval${outcome.notifyDelivered === false ? " (WhatsApp not configured — approve from the dashboard)" : ""}`,
+      );
+    } else {
+      console.log(`  -> fix applied automatically (${outcome.type}), verifying...`);
+    }
   } else if (result.incidentId) {
     console.log(`  -> already has an open incident (${result.incidentId})`);
   }

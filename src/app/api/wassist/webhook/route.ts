@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { notify, parseReply } from '@/lib/agents/wassist';
 import { pendingIncident, recordDecision } from '@/lib/dashboard/approvals';
+import { applyApprovedFix } from '@/lib/commerce/fix-lifecycle';
 
 /** Inbound WhatsApp replies from Wassist. APPROVE / REJECT / WHY. */
 export async function POST(req: Request) {
@@ -31,6 +32,9 @@ export async function POST(req: Request) {
 
   if (intent === 'approve' || intent === 'reject') {
     const result = await recordDecision(pending.incident_id, intent, from);
+    if (result.ok && intent === 'approve') {
+      await applyApprovedFix(pending.incident_id);
+    }
     await notify(
       from,
       result.ok

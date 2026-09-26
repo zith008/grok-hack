@@ -23,7 +23,7 @@ export type ShopifyProduct = {
   id: number;
   title: string;
   body_html: string;
-  variants: { id: number; price: string; inventory_quantity: number }[];
+  variants: { id: number; price: string; inventory_quantity: number; inventory_item_id: number }[];
   images: { src: string }[];
 };
 
@@ -63,4 +63,41 @@ export async function updateVariantPrice(variantId: number, price: string): Prom
   if (!res.ok) {
     throw new Error(`Shopify updateVariantPrice failed: ${res.status} ${await res.text()}`);
   }
+}
+
+export type NewProduct = {
+  title: string;
+  body_html: string;
+  vendor?: string;
+  price: string;
+  inventory: number;
+  image_src?: string;
+};
+
+export async function createProduct(product: NewProduct): Promise<ShopifyProduct> {
+  const res = await fetch(`${shopifyBaseUrl()}/products.json`, {
+    method: "POST",
+    headers: shopifyHeaders(),
+    body: JSON.stringify({
+      product: {
+        title: product.title,
+        body_html: product.body_html,
+        vendor: product.vendor ?? "Autopilot Goods",
+        status: "active",
+        variants: [
+          {
+            price: product.price,
+            inventory_management: "shopify",
+            inventory_quantity: product.inventory,
+          },
+        ],
+        images: product.image_src ? [{ src: product.image_src }] : [],
+      },
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Shopify createProduct failed: ${res.status} ${await res.text()}`);
+  }
+  const { product: created } = (await res.json()) as { product: ShopifyProduct };
+  return created;
 }

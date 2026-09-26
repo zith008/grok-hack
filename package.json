@@ -2,15 +2,19 @@
   "name": "autopilot",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "sync:products": "tsx scripts/sync-products.ts",
-    "seed:products": "tsx scripts/seed-products.ts",
-    "shop": "tsx scripts/run-shoppers.ts",
-    "break": "tsx scripts/break-product.ts"
+    "sync:products": "tsx --env-file=.env.local scripts/sync-products.ts",
+    "seed:products": "tsx --env-file=.env.local scripts/seed-products.ts",
+    "shop": "tsx --env-file=.env.local scripts/run-shoppers.ts",
+    "break": "tsx --env-file=.env.local scripts/break-product.ts",
+    "check:snapshot": "tsx --env-file=.env.local scripts/check-snapshot.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

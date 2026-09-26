@@ -41,3 +41,25 @@ export interface FixProposal {
 }
 
 export type IncidentStatus = 'open' | 'fixing' | 'verified' | 'rolled_back';
+
+/**
+ * What A's product sync must give B for a page to be shopped.
+ * Mirrors the products table plus whatever the page actually renders.
+ */
+export interface ProductSnapshot {
+  shopify_id: string;
+  title: string;
+  description: string;
+  price: number;
+  currency: string;
+  /** Free text: measurements or size chart. Empty string when absent. */
+  size_info: string;
+  /** Free text: fabric composition. Empty string when absent. */
+  materials: string;
+  /** Free text: returns window and who pays postage. Empty string when absent. */
+  returns_policy: string;
+  image_urls: string[];
+  inventory: number;
+  /** Median of Tavily comps. Null before detector 2 exists. */
+  market_median_price: number | null;
+}

@@ -26,17 +26,17 @@ export function RevenueAtRisk({ amount }: { amount: number }) {
   const clear = amount <= 0;
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8">
-      <div className="text-sm uppercase tracking-[0.2em] text-white/40">Revenue at risk</div>
+    <div className="rounded-2xl border border-border bg-surface p-8">
+      <div className="text-sm uppercase tracking-[0.2em] text-ink-faint">Revenue at risk</div>
       <div
         className={`mt-2 font-mono text-7xl font-semibold tabular-nums transition-colors ${
-          clear ? 'text-emerald-400' : 'text-red-400'
+          clear ? 'text-ok' : 'text-critical'
         }`}
       >
         £{Math.max(0, Math.round(shown)).toLocaleString()}
-        <span className="ml-2 align-middle text-2xl text-white/30">/day</span>
+        <span className="ml-2 align-middle text-2xl text-ink-faint">/day</span>
       </div>
-      <div className="mt-2 text-sm text-white/40">
+      <div className="mt-2 text-sm text-ink-faint">
         {clear ? 'All known leaks closed.' : 'Estimated from missing carts × order value.'}
       </div>
     </div>

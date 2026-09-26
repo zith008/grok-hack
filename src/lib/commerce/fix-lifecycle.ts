@@ -15,13 +15,20 @@ import { getProduct, updateProduct, updateVariantPrice } from "./shopify";
 import { getSupabaseServerClient } from "./supabase";
 import { syncAllProducts } from "./sync";
 
+/**
+ * `body_html` is kept only so a rollback can restore the exact original —
+ * it's excluded from the dashboard diff (see BeforeAfterDiff's EXCLUDE_KEYS).
+ * Everything else here is the parsed, human-readable shape, so before and
+ * after always compare like with like.
+ */
 async function snapshotBeforeJson(type: FixType, shopifyId: number): Promise<Record<string, unknown>> {
   if (type === "reorder") return {};
   const product = await getProduct(shopifyId);
   if (type === "price") {
     return { price: product.variants[0]?.price ?? null };
   }
-  return { title: product.title, body_html: product.body_html };
+  const parsed = parseDescription(product.body_html);
+  return { title: product.title, body_html: product.body_html, ...parsed };
 }
 
 /** Rebuilds body_html from the fix's new description plus whatever labelled lines are still intact. */
@@ -40,6 +47,13 @@ async function applyCopyFix(shopifyId: number, after_json: Record<string, unknow
     title: typeof after_json.title === "string" ? after_json.title : product.title,
     body_html: newBodyHtml,
   });
+}
+
+/** Re-reads the live product after a copy fix so the stored after_json reflects what actually landed. */
+async function readBackCopyState(shopifyId: number, fallbackTitle: string): Promise<Record<string, unknown>> {
+  const product = await getProduct(shopifyId);
+  const parsed = parseDescription(product.body_html);
+  return { title: product.title ?? fallbackTitle, ...parsed };
 }
 
 async function applyToShopify(type: FixType, shopifyId: number, after_json: Record<string, unknown>) {
@@ -191,6 +205,12 @@ export async function proposeAndApply(
 
   await supabase.from("incidents").update({ status: "fixing" }).eq("id", incidentId);
   await applyToShopify(fix.type, shopifyId, fix.after_json);
+
+  if (fix.type === "copy") {
+    const after_json = await readBackCopyState(shopifyId, product.title);
+    await supabase.from("fixes").update({ after_json }).eq("id", fixRow.id);
+  }
+
   await verifyIncident(incidentId, product.id, shopifyId, fix.type, before_json);
 
   return { fixId: fixRow.id, type: fix.type, autonomy, applied: true, needsApproval: false };
@@ -231,11 +251,16 @@ export async function applyApprovedFix(incidentId: string) {
 
   const shopifyId = Number(product.shopify_id);
   const type = fixRow.type as FixType;
-  const after_json = fixRow.after_json as Record<string, unknown>;
   const before_json = fixRow.before_json as Record<string, unknown>;
+  let after_json = fixRow.after_json as Record<string, unknown>;
 
   await applyToShopify(type, shopifyId, after_json);
-  await supabase.from("fixes").update({ applied_at: new Date().toISOString() }).eq("id", fixRow.id);
+
+  if (type === "copy") {
+    after_json = await readBackCopyState(shopifyId, String(before_json.title ?? ""));
+  }
+
+  await supabase.from("fixes").update({ after_json, applied_at: new Date().toISOString() }).eq("id", fixRow.id);
 
   const result = await verifyIncident(incidentId, incident.product_id, shopifyId, type, before_json);
   return { applied: true, ...result };

@@ -39,10 +39,10 @@ export interface EventRow {
 }
 
 export const STATUS_STYLE: Record<IncidentStatus, { label: string; cls: string }> = {
-  open: { label: 'Detected', cls: 'bg-red-500/15 text-red-300 ring-red-500/30' },
-  fixing: { label: 'Fixing', cls: 'bg-amber-500/15 text-amber-300 ring-amber-500/30' },
-  verified: { label: 'Verified fixed', cls: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30' },
-  rolled_back: { label: 'Rolled back', cls: 'bg-slate-500/15 text-slate-300 ring-slate-500/30' },
+  open: { label: 'Detected', cls: 'bg-critical-bg text-critical ring-critical-ring' },
+  fixing: { label: 'Fixing', cls: 'bg-warn-bg text-warn ring-warn-ring' },
+  verified: { label: 'Verified fixed', cls: 'bg-ok-bg text-ok ring-ok-ring' },
+  rolled_back: { label: 'Rolled back', cls: 'bg-neutral-status-bg text-neutral-status ring-neutral-status-ring' },
 };
 
 /** Money still leaking: only incidents that are not yet resolved. */

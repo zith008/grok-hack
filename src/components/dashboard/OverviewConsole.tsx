@@ -61,10 +61,6 @@ export function OverviewConsole() {
         where you&apos;re quietly losing revenue, fixes it, and proves the fix worked — or rolls it back.
       </p>
 
-      <div className="mt-5">
-        <HowItWorks />
-      </div>
-
       {loading ? (
         <Skeleton />
       ) : (
@@ -79,6 +75,10 @@ export function OverviewConsole() {
           <LossChart incidents={incidents} />
         </div>
       )}
+
+      <div className="mt-4">
+        <HowItWorks />
+      </div>
     </section>
   );
 }

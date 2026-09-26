@@ -106,11 +106,15 @@ function Step({ step, index, isLast }: { step: (typeof STEPS)[number]; index: nu
 export function HowItWorks() {
   return (
     <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-      <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-ink-faint">How it works</h2>
-      <div>
-        {STEPS.map((step, i) => (
-          <Step key={step.title} step={step} index={i} isLast={i === STEPS.length - 1} />
-        ))}
+      <div className="mx-auto max-w-xl">
+        <h2 className="mb-6 text-center text-sm font-semibold uppercase tracking-wider text-ink-faint">
+          How it works
+        </h2>
+        <div>
+          {STEPS.map((step, i) => (
+            <Step key={step.title} step={step} index={i} isLast={i === STEPS.length - 1} />
+          ))}
+        </div>
       </div>
     </div>
   );

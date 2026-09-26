@@ -22,9 +22,18 @@ from products p
 where i.product_id = p.id and i.product_title is null;
 
 -- Realtime: without this the console never updates and the demo looks dead.
-alter publication supabase_realtime add table incidents;
-alter publication supabase_realtime add table fixes;
-alter publication supabase_realtime add table events;
+do $$
+declare t text;
+begin
+  foreach t in array array['incidents', 'fixes', 'events'] loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;
 
 -- Realtime respects RLS, so the anon key needs explicit read access.
 drop policy if exists "anon read incidents" on incidents;

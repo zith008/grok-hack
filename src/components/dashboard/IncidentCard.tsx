@@ -21,7 +21,7 @@ export function IncidentCard({
 }) {
   const [busy, setBusy] = useState(false);
   const style = STATUS_STYLE[incident.status];
-  const awaiting = incident.status === 'fixing' && fix && !fix.applied_at && fix.autonomy === 'approval';
+  const awaiting = incident.status === 'fixing' && fix && !fix.applied_at && fix.autonomy !== 'automatic';
 
   const act = (fn: (id: string) => void) => {
     setBusy(true);

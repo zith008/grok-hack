@@ -24,7 +24,7 @@ export interface FixRow {
   type: FixType;
   before_json: Record<string, unknown>;
   after_json: Record<string, unknown>;
-  autonomy: 'auto' | 'approval';
+  autonomy: 'automatic' | 'needs_approval' | 'draft_only';
   approved_by: string | null;
   applied_at: string | null;
 }

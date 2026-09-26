@@ -2,25 +2,28 @@ import { callJson } from './grok';
 import type { Diagnosis, FixProposal, FixType, PersonaDecision, ProductSnapshot } from './types';
 import { FIX_SYSTEM, fixUser } from './prompts/fix';
 
+/** Matches the autonomy vocabulary in supabase/migrations/0001_init.sql. */
+export type Autonomy = 'automatic' | 'needs_approval' | 'draft_only';
+
 export interface AutonomySettings {
-  /** 'auto' applies without asking; 'approval' waits for a WhatsApp reply. */
-  copy: 'auto' | 'approval';
-  price: 'auto' | 'approval';
-  /** Percent of price that must remain as margin, e.g. 0.3 for 30%. */
+  copy: Autonomy;
+  price: Autonomy;
+  /** Whole percent, as stored in settings.margin_floor_pct. 20 means 20%. */
   margin_floor_pct: number;
   /** Unit cost from the products table, when known. */
   cost?: number | null;
 }
 
 export const DEFAULT_AUTONOMY: AutonomySettings = {
-  copy: 'auto',
-  price: 'approval',
-  margin_floor_pct: 0.3,
+  copy: 'automatic',
+  price: 'needs_approval',
+  margin_floor_pct: 20,
 };
 
 function marginFloor(p: ProductSnapshot, s: AutonomySettings): number | null {
   if (s.cost == null) return null;
-  return s.cost / (1 - s.margin_floor_pct);
+  const pct = Math.min(Math.max(s.margin_floor_pct, 0), 95) / 100;
+  return s.cost / (1 - pct);
 }
 
 /**
@@ -78,6 +81,7 @@ export async function proposeFix(
     incident_id: incidentId,
     type,
     after_json,
-    needs_approval: type === 'price' ? settings.price === 'approval' : settings.copy === 'approval',
+    needs_approval:
+      (type === 'price' ? settings.price : settings.copy) !== 'automatic',
   };
 }

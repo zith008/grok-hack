@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/dashboard/supabase';
+import { getSupabase } from '@/lib/dashboard/supabase';
 import { revenueAtRisk, type EventRow, type FixRow, type IncidentRow } from '@/lib/dashboard/rows';
 import { RevenueAtRisk } from './RevenueAtRisk';
 import { IncidentCard } from './IncidentCard';
@@ -14,8 +14,13 @@ export function IncidentConsole() {
   const [fixes, setFixes] = useState<FixRow[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
 
+  // NEXT_PUBLIC vars are inlined at build, so this is stable across render and hydration.
+  const connected = useMemo(() => getSupabase() !== null, []);
+
   // Initial load, then keep everything in sync over realtime.
   useEffect(() => {
+    const supabase = getSupabase();
+    if (!supabase) return;
     let live = true;
 
     (async () => {
@@ -71,6 +76,12 @@ export function IncidentConsole() {
 
   return (
     <div className="space-y-6">
+      {!connected && (
+        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          Supabase env vars are not set, so this console is not live.
+        </p>
+      )}
+
       <RevenueAtRisk amount={atRisk} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">

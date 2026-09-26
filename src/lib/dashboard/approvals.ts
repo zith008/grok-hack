@@ -1,4 +1,4 @@
-import { serverSupabase } from './supabase-server';
+import { getSupabaseServerClient } from '@/lib/commerce/supabase';
 
 export type Decision = 'approve' | 'reject';
 
@@ -11,7 +11,7 @@ export async function recordDecision(
   decision: Decision,
   approvedBy: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const db = serverSupabase();
+  const db = getSupabaseServerClient();
 
   const { data: fix, error: fixErr } = await db
     .from('fixes')
@@ -38,7 +38,7 @@ export async function recordDecision(
 
 /** The incident whose fix is currently waiting on a human. */
 export async function pendingIncident() {
-  const db = serverSupabase();
+  const db = getSupabaseServerClient();
   const { data } = await db
     .from('fixes')
     .select('incident_id, incidents(id, product_title, diagnosis, loss_per_day_gbp)')

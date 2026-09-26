@@ -2,7 +2,11 @@
 
 import { useMemo } from 'react';
 import { useConsoleData } from '@/lib/dashboard/useConsoleData';
+import { revenueAtRisk } from '@/lib/dashboard/rows';
 import { toSnapshot } from '@/lib/agents/snapshot';
+import { Hero } from './Hero';
+import { StatsGrid } from './StatsGrid';
+import { LossChart } from './LossChart';
 import { StoreHealth } from './StoreHealth';
 import { DetectorsPanel } from './DetectorsPanel';
 import { ActivityTable } from './ActivityTable';
@@ -10,13 +14,20 @@ import { EventFeed } from './EventFeed';
 
 function Skeleton() {
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-12">
-      <div className="space-y-4 lg:col-span-3">
-        <div className="h-32 animate-pulse rounded-2xl border border-border bg-card" />
-        <div className="h-40 animate-pulse rounded-2xl border border-border bg-card" />
+    <div className="mt-5 space-y-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-48 animate-pulse rounded-2xl border border-border bg-card" />
+        ))}
       </div>
-      <div className="h-64 animate-pulse rounded-2xl border border-border bg-card lg:col-span-6" />
-      <div className="h-64 animate-pulse rounded-2xl border border-border bg-card lg:col-span-3" />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="space-y-4 lg:col-span-3">
+          <div className="h-32 animate-pulse rounded-2xl border border-border bg-card" />
+          <div className="h-40 animate-pulse rounded-2xl border border-border bg-card" />
+        </div>
+        <div className="h-64 animate-pulse rounded-2xl border border-border bg-card lg:col-span-6" />
+        <div className="h-64 animate-pulse rounded-2xl border border-border bg-card lg:col-span-3" />
+      </div>
     </div>
   );
 }
@@ -32,6 +43,11 @@ export function IncidentsConsole({
 }) {
   const { incidents, products, events, loading, fixFor, thumbFor, decide } = useConsoleData();
 
+  const atRisk = useMemo(() => revenueAtRisk(incidents), [incidents]);
+  const recovered = useMemo(
+    () => incidents.filter((i) => i.status === 'verified').reduce((sum, i) => sum + (i.loss_per_day_gbp ?? 0), 0),
+    [incidents],
+  );
   const storeHealth = useMemo(() => {
     if (products.length === 0) return { healthy: 0, total: 0 };
     const healthy = products.filter((row) => {
@@ -40,6 +56,7 @@ export function IncidentsConsole({
     }).length;
     return { healthy, total: products.length };
   }, [products]);
+  const storeHealthPct = storeHealth.total === 0 ? 1 : storeHealth.healthy / storeHealth.total;
 
   return (
     <section>
@@ -49,29 +66,42 @@ export function IncidentsConsole({
       {loading ? (
         <Skeleton />
       ) : (
-        <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <div className="space-y-4 lg:col-span-3">
-            <StoreHealth healthy={storeHealth.healthy} total={storeHealth.total} />
-            <DetectorsPanel grokLive={grokLive} wassistLive={wassistLive} tavilyLive={tavilyLive} />
-          </div>
-
-          <div className="lg:col-span-6">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-ink-faint">
-              Incidents {incidents.length > 0 && `(${incidents.length})`}
-            </h2>
-            <ActivityTable
-              incidents={incidents}
-              fixFor={fixFor}
-              thumbFor={thumbFor}
-              onApprove={(id) => decide(id, 'approve')}
-              onReject={(id) => decide(id, 'reject')}
+        <>
+          <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <Hero amount={atRisk} />
+            <StatsGrid
+              activeCount={incidents.filter((i) => i.status === 'open' || i.status === 'fixing').length}
+              recoveredPerDayGbp={recovered}
+              shopperEventCount={events.length}
+              storeHealthPct={storeHealthPct}
             />
+            <LossChart incidents={incidents} />
           </div>
 
-          <div className="lg:col-span-3">
-            <EventFeed events={events} />
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <div className="space-y-4 lg:col-span-3">
+              <StoreHealth healthy={storeHealth.healthy} total={storeHealth.total} />
+              <DetectorsPanel grokLive={grokLive} wassistLive={wassistLive} tavilyLive={tavilyLive} />
+            </div>
+
+            <div className="lg:col-span-6">
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-ink-faint">
+                Incidents {incidents.length > 0 && `(${incidents.length})`}
+              </h2>
+              <ActivityTable
+                incidents={incidents}
+                fixFor={fixFor}
+                thumbFor={thumbFor}
+                onApprove={(id) => decide(id, 'approve')}
+                onReject={(id) => decide(id, 'reject')}
+              />
+            </div>
+
+            <div className="lg:col-span-3">
+              <EventFeed events={events} />
+            </div>
           </div>
-        </div>
+        </>
       )}
     </section>
   );

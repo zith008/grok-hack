@@ -87,10 +87,10 @@ export function Hero({ amount }: { amount: number }) {
             {running ? 'Running shoppers…' : 'Run shoppers now'}
           </button>
           <Link
-            href="/dashboard/incidents"
+            href="/dashboard"
             className="rounded-xl border border-border-strong px-5 py-3 text-sm font-semibold text-ink-dim transition hover:bg-card-muted"
           >
-            View incidents
+            Back to overview
           </Link>
         </div>
         {note && <p className="mt-3 text-xs text-ink-faint">{note}</p>}
